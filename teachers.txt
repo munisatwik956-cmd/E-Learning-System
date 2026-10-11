@@ -1,0 +1,2 @@
+101|Prof. Rahul|teacher1|rahul123|Software Engineering
+102|Dr. Ramesh|teacher2|ramesh123|Computer Science

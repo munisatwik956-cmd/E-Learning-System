@@ -1,0 +1,9 @@
+COURSE|1001|C++ Object Oriented Programming|Comprehensive guide to Classes, Inheritance, Polymorphism & File I/O.|Prof. Rahul|4
+CHAPTER|1|Introduction to OOP Concepts|Overview of Classes, Objects, Abstraction & Encapsulation.|25
+CHAPTER|2|Constructors & Destructors|Memory lifecycle, constructors, destructors and copy semantics.|30
+CHAPTER|3|Inheritance & Dynamic Polymorphism|Base/Derived classes, virtual functions, and vtables.|40
+CHAPTER|4|C++ File Handling & Streams|Reading and writing structured data using fstream.|35
+COURSE|1002|Data Structures & Algorithms|Master Arrays, Linked Lists, Trees, Graphs & Algorithm Analysis.|Dr. Ramesh|3
+CHAPTER|1|Arrays & Pointers|Contiguous memory allocation and pointer arithmetic.|20
+CHAPTER|2|Dynamic Linked Lists|Singly & Doubly Linked Lists implementation.|35
+CHAPTER|3|Binary Search Trees|Tree traversals, insertion, and deletion algorithms.|45
