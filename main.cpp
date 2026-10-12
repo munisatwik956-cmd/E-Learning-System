@@ -5,8 +5,15 @@
 #include <string>
 #include <iomanip>
 #include <algorithm>
-#include <memory>
 #include <limits>
+#ifdef _WIN32
+#include <conio.h>
+#include <io.h>
+#include <cstdio>
+#else
+#include <termios.h>
+#include <unistd.h>
+#endif
 
 using namespace std;
 
@@ -32,6 +39,61 @@ string readLinePrompt(const string& prompt) {
         line.pop_back();
     }
     return line;
+}
+
+string readPasswordPrompt(const string& prompt) {
+    cout << prompt;
+    cout.flush();
+    string pass;
+#ifdef _WIN32
+    if (!_isatty(_fileno(stdin))) {
+        getline(cin, pass);
+        if (!pass.empty() && pass.back() == '\r') {
+            pass.pop_back();
+        }
+        return pass;
+    }
+    while (true) {
+        int ch = _getch();
+        if (ch == '\r' || ch == '\n') {
+            break;
+        } else if (ch == '\b' || ch == 127) {
+            if (!pass.empty()) {
+                pass.pop_back();
+            }
+        } else if (ch == 0 || ch == 224) {
+            _getch(); // Skip extended key codes (arrows, function keys)
+        } else if (ch == 3) {
+            exit(0); // Ctrl+C
+        } else if (ch >= 32 && ch <= 126) {
+            // Silently store character (display nothing as in linux terminal)
+            pass.push_back(static_cast<char>(ch));
+        }
+    }
+    cout << "\n";
+#else
+    if (!isatty(STDIN_FILENO)) {
+        getline(cin, pass);
+        if (!pass.empty() && pass.back() == '\r') {
+            pass.pop_back();
+        }
+        return pass;
+    }
+    termios oldt, newt;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+
+    getline(cin, pass);
+    if (!pass.empty() && pass.back() == '\r') {
+        pass.pop_back();
+    }
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    cout << "\n";
+#endif
+    return pass;
 }
 
 // ============================================================================
@@ -598,7 +660,7 @@ public:
                 return;
             }
         }
-        string pass = readLinePrompt(" Enter Password: ");
+        string pass = readPasswordPrompt(" Enter Password: ");
 
         int newId = 201;
         if (!students.empty()) {
@@ -927,7 +989,7 @@ public:
                 cout << "\n--- ADD NEW TEACHER ---\n";
                 string name = readLinePrompt(" Enter Full Name: ");
                 string uname = readLinePrompt(" Enter Username: ");
-                string pass = readLinePrompt(" Enter Password: ");
+                string pass = readPasswordPrompt(" Enter Password: ");
                 string dept = readLinePrompt(" Enter Department: ");
 
                 int newId = 101;
@@ -942,7 +1004,7 @@ public:
                 cout << "\n--- ADD NEW ADMIN ---\n";
                 string name = readLinePrompt(" Enter Full Name: ");
                 string uname = readLinePrompt(" Enter Username: ");
-                string pass = readLinePrompt(" Enter Password: ");
+                string pass = readPasswordPrompt(" Enter Password: ");
 
                 int newId = 1;
                 if (!admins.empty()) newId = admins.back().getUserId() + 1;
@@ -1040,7 +1102,7 @@ int main() {
         switch (mainChoice) {
         case 1: {
             string uname = readLinePrompt("\n Enter Student Username: ");
-            string pass = readLinePrompt(" Enter Password: ");
+            string pass = readPasswordPrompt(" Enter Password: ");
             Student* student = system.loginStudent(uname, pass);
             if (student) {
                 cout << "\n[Success] Welcome back, " << student->getName() << "!\n";
@@ -1052,7 +1114,7 @@ int main() {
         }
         case 2: {
             string uname = readLinePrompt("\n Enter Teacher Username: ");
-            string pass = readLinePrompt(" Enter Password: ");
+            string pass = readPasswordPrompt(" Enter Password: ");
             Teacher* teacher = system.loginTeacher(uname, pass);
             if (teacher) {
                 cout << "\n[Success] Welcome, Instructor " << teacher->getName() << "!\n";
@@ -1064,7 +1126,7 @@ int main() {
         }
         case 3: {
             string uname = readLinePrompt("\n Enter Admin Username: ");
-            string pass = readLinePrompt(" Enter Password: ");
+            string pass = readPasswordPrompt(" Enter Password: ");
             Admin* admin = system.loginAdmin(uname, pass);
             if (admin) {
                 cout << "\n[Success] Admin authentication granted. Welcome, " << admin->getName() << "!\n";
