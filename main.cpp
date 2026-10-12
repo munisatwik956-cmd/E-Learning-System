@@ -355,7 +355,7 @@ public:
         loadEnrollments();
 
         // Seed initial default records if files were missing/empty
-        seedInitialDataIfEmpty();
+        // seedInitialDataIfEmpty();
 
         cout << "[System Setup] Data loaded successfully!\n";
         cout << "               - Admins   : " << admins.size() << "\n";
@@ -541,42 +541,42 @@ public:
     // ========================================================================
     // INITIAL DEFAULT SEEDING IF FILES DID NOT EXIST
     // ========================================================================
-    void seedInitialDataIfEmpty() {
-        if (admins.empty()) {
-            admins.push_back(Admin(1, "System Admin", "admin", "admin123"));
-        }
-        if (teachers.empty()) {
-            teachers.push_back(Teacher(101, "Prof. Robert Martin", "teacher1", "pass123", "Software Engineering"));
-            teachers.push_back(Teacher(102, "Dr. Grace Hopper", "teacher2", "pass123", "Computer Science"));
-        }
-        if (students.empty()) {
-            students.push_back(Student(201, "Alice Smith", "student1", "pass123"));
-            students.push_back(Student(202, "Bob Jones", "student2", "pass123"));
-        }
-        if (courses.empty()) {
-            Course c1(1001, "C++ Object Oriented Programming", 
-                      "Comprehensive guide to Classes, Inheritance, Polymorphism & File I/O.", 
-                      "Prof. Robert Martin");
-            c1.addChapter(Chapter(1, "Introduction to OOP Concepts", "Overview of Classes, Objects, Abstraction & Encapsulation.", 25));
-            c1.addChapter(Chapter(2, "Constructors & Destructors", "Memory lifecycle, constructors, destructors and copy semantics.", 30));
-            c1.addChapter(Chapter(3, "Inheritance & Dynamic Polymorphism", "Base/Derived classes, virtual functions, and vtables.", 40));
-            c1.addChapter(Chapter(4, "C++ File Handling & Streams", "Reading and writing structured data using fstream.", 35));
+    // void seedInitialDataIfEmpty() {
+    //     if (admins.empty()) {
+    //         admins.push_back(Admin(1, "System Admin", "admin", "admin123"));
+    //     }
+    //     if (teachers.empty()) {
+    //         teachers.push_back(Teacher(101, "Prof. Robert Martin", "teacher1", "pass123", "Software Engineering"));
+    //         teachers.push_back(Teacher(102, "Dr. Grace Hopper", "teacher2", "pass123", "Computer Science"));
+    //     }
+    //     if (students.empty()) {
+    //         students.push_back(Student(201, "Alice Smith", "student1", "pass123"));
+    //         students.push_back(Student(202, "Bob Jones", "student2", "pass123"));
+    //     }
+    //     if (courses.empty()) {
+    //         Course c1(1001, "C++ Object Oriented Programming", 
+    //                   "Comprehensive guide to Classes, Inheritance, Polymorphism & File I/O.", 
+    //                   "Prof. Robert Martin");
+    //         c1.addChapter(Chapter(1, "Introduction to OOP Concepts", "Overview of Classes, Objects, Abstraction & Encapsulation.", 25));
+    //         c1.addChapter(Chapter(2, "Constructors & Destructors", "Memory lifecycle, constructors, destructors and copy semantics.", 30));
+    //         c1.addChapter(Chapter(3, "Inheritance & Dynamic Polymorphism", "Base/Derived classes, virtual functions, and vtables.", 40));
+    //         c1.addChapter(Chapter(4, "C++ File Handling & Streams", "Reading and writing structured data using fstream.", 35));
 
-            Course c2(1002, "Data Structures & Algorithms", 
-                      "Master Arrays, Linked Lists, Trees, Graphs & Algorithm Analysis.", 
-                      "Dr. Grace Hopper");
-            c2.addChapter(Chapter(1, "Arrays & Pointers", "Contiguous memory allocation and pointer arithmetic.", 20));
-            c2.addChapter(Chapter(2, "Dynamic Linked Lists", "Singly & Doubly Linked Lists implementation.", 35));
-            c2.addChapter(Chapter(3, "Binary Search Trees", "Tree traversals, insertion, and deletion algorithms.", 45));
+    //         Course c2(1002, "Data Structures & Algorithms", 
+    //                   "Master Arrays, Linked Lists, Trees, Graphs & Algorithm Analysis.", 
+    //                   "Dr. Grace Hopper");
+    //         c2.addChapter(Chapter(1, "Arrays & Pointers", "Contiguous memory allocation and pointer arithmetic.", 20));
+    //         c2.addChapter(Chapter(2, "Dynamic Linked Lists", "Singly & Doubly Linked Lists implementation.", 35));
+    //         c2.addChapter(Chapter(3, "Binary Search Trees", "Tree traversals, insertion, and deletion algorithms.", 45));
 
-            courses.push_back(c1);
-            courses.push_back(c2);
+    //         courses.push_back(c1);
+    //         courses.push_back(c2);
 
-            students[0].enrollInCourse(1001, 2);
-            students[1].enrollInCourse(1002, 1);
-        }
-        saveDataToFiles();
-    }
+    //         students[0].enrollInCourse(1001, 2);
+    //         students[1].enrollInCourse(1002, 1);
+    //     }
+    //     saveDataToFiles();
+    // }
 
     // ========================================================================
     // FINDER UTILITIES
