@@ -14,7 +14,6 @@
 #include <termios.h>
 #include <unistd.h>
 #endif
-
 using namespace std;
 
 // ============================================================================
@@ -345,7 +344,7 @@ public:
     // ========================================================================
     // FILE HANDLING - LOADING AT START OF PROGRAM
     // ========================================================================
-    void loadDataFromFiles() {
+    /* void loadDataFromFiles() {
         cout << "[System Setup] Loading data from .txt files...\n";
 
         loadAdmins();
@@ -362,7 +361,59 @@ public:
         cout << "               - Teachers : " << teachers.size() << "\n";
         cout << "               - Students : " << students.size() << "\n";
         cout << "               - Courses  : " << courses.size() << "\n";
+    } */
+    void loadDataFromFiles()
+    {
+        cout << "[System Setup] Loading data from .txt files...\n";
+
+        try
+        {
+            // Check whether required files exist and can be opened.
+            ifstream adminFile(ADMIN_FILE);
+            ifstream teacherFile(TEACHER_FILE);
+            ifstream userFile(USER_FILE);
+            ifstream courseFile(COURSE_FILE);
+            ifstream enrollmentFile(ENROLLMENT_FILE);
+
+            if (!adminFile.is_open() ||
+                !teacherFile.is_open() ||
+                !userFile.is_open() ||
+                !courseFile.is_open() ||
+                !enrollmentFile.is_open())
+            {
+                throw runtime_error("One or more data files are missing.");
+            }
+
+            adminFile.close();
+            teacherFile.close();
+            userFile.close();
+            courseFile.close();
+            enrollmentFile.close();
+
+            // Load data from existing files.
+            loadAdmins();
+            loadTeachers();
+            loadStudents();
+            loadCourses();
+            loadEnrollments();
+
+            cout << "[System Setup] Data loaded successfully!\n";
+        }
+        catch (const exception &e)
+        {
+            cerr << "[Warning] " << e.what() << "\n";
+            cout << "[System Setup] Loading default hardcoded data...\n";
+
+            seedInitialDataIfEmpty();
+            saveDataToFiles();
+        }
+
+        cout << "               - Admins   : " << admins.size() << "\n";
+        cout << "               - Teachers : " << teachers.size() << "\n";
+        cout << "               - Students : " << students.size() << "\n";
+        cout << "               - Courses  : " << courses.size() << "\n";
     }
+    
 
     void loadAdmins() {
         admins.clear();
@@ -374,7 +425,16 @@ public:
             if (line.empty()) continue;
             auto parts = splitString(line, '|');
             if (parts.size() >= 4) {
-                int id = stoi(parts[0]);
+                int id;
+                try
+                {
+                    id = stoi(parts[0]);
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Invalid admin ID: " << e.what() << "\n";
+                    continue;
+                }
                 admins.push_back(Admin(id, parts[1], parts[2], parts[3]));
             }
         }
@@ -391,7 +451,16 @@ public:
             if (line.empty()) continue;
             auto parts = splitString(line, '|');
             if (parts.size() >= 4) {
-                int id = stoi(parts[0]);
+                int id;
+                try
+                {
+                    id = stoi(parts[0]);
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Invalid teacher ID: " << e.what() << "\n";
+                    continue;
+                }
                 string dept = (parts.size() >= 5) ? parts[4] : "Computer Science";
                 teachers.push_back(Teacher(id, parts[1], parts[2], parts[3], dept));
             }
@@ -409,7 +478,16 @@ public:
             if (line.empty()) continue;
             auto parts = splitString(line, '|');
             if (parts.size() >= 4) {
-                int id = stoi(parts[0]);
+                int id;
+                try
+                {
+                    id = stoi(parts[0]);
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Invalid student ID: " << e.what() << "\n";
+                    continue;
+                }
                 students.push_back(Student(id, parts[1], parts[2], parts[3]));
             }
         }
@@ -430,13 +508,28 @@ public:
             if (parts.empty()) continue;
 
             if (parts[0] == "COURSE" && parts.size() >= 5) {
-                int cId = stoi(parts[1]);
-                courses.push_back(Course(cId, parts[2], parts[3], parts[4]));
-                currentCourse = &courses.back();
+                try
+                {
+                    int cId = stoi(parts[1]);
+                    courses.push_back(Course(cId, parts[2], parts[3], parts[4]));
+                    currentCourse = &courses.back();
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Failed to load course: " << e.what() << "\n";
+                    currentCourse = nullptr;
+                }
             } else if (parts[0] == "CHAPTER" && currentCourse != nullptr && parts.size() >= 5) {
-                int chId = stoi(parts[1]);
-                int duration = stoi(parts[4]);
-                currentCourse->addChapter(Chapter(chId, parts[2], parts[3], duration));
+                try
+                {
+                    int chId = stoi(parts[1]);
+                    int duration = stoi(parts[4]);
+                    currentCourse->addChapter(Chapter(chId, parts[2], parts[3], duration));
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Failed to load chapter: " << e.what() << "\n";
+                }
             }
         }
         file.close();
@@ -451,13 +544,21 @@ public:
             if (line.empty()) continue;
             auto parts = splitString(line, '|');
             if (parts.size() >= 3) {
-                int sId = stoi(parts[0]);
-                int cId = stoi(parts[1]);
-                int comp = stoi(parts[2]);
+                try
+                {
+                    int sId = stoi(parts[0]);
+                    int cId = stoi(parts[1]);
+                    int comp = stoi(parts[2]);
 
-                Student* st = findStudentById(sId);
-                if (st) {
-                    st->enrollInCourse(cId, comp);
+                    Student *st = findStudentById(sId);
+                    if (st)
+                    {
+                        st->enrollInCourse(cId, comp);
+                    }
+                }
+                catch (const exception &e)
+                {
+                    cerr << "[Error] Failed to load enrollment: " << e.what() << "\n";
                 }
             }
         }
@@ -541,42 +642,41 @@ public:
     // ========================================================================
     // INITIAL DEFAULT SEEDING IF FILES DID NOT EXIST
     // ========================================================================
-    // void seedInitialDataIfEmpty() {
-    //     if (admins.empty()) {
-    //         admins.push_back(Admin(1, "System Admin", "admin", "admin123"));
-    //     }
-    //     if (teachers.empty()) {
-    //         teachers.push_back(Teacher(101, "Prof. Robert Martin", "teacher1", "pass123", "Software Engineering"));
-    //         teachers.push_back(Teacher(102, "Dr. Grace Hopper", "teacher2", "pass123", "Computer Science"));
-    //     }
-    //     if (students.empty()) {
-    //         students.push_back(Student(201, "Alice Smith", "student1", "pass123"));
-    //         students.push_back(Student(202, "Bob Jones", "student2", "pass123"));
-    //     }
-    //     if (courses.empty()) {
-    //         Course c1(1001, "C++ Object Oriented Programming", 
-    //                   "Comprehensive guide to Classes, Inheritance, Polymorphism & File I/O.", 
-    //                   "Prof. Robert Martin");
-    //         c1.addChapter(Chapter(1, "Introduction to OOP Concepts", "Overview of Classes, Objects, Abstraction & Encapsulation.", 25));
-    //         c1.addChapter(Chapter(2, "Constructors & Destructors", "Memory lifecycle, constructors, destructors and copy semantics.", 30));
-    //         c1.addChapter(Chapter(3, "Inheritance & Dynamic Polymorphism", "Base/Derived classes, virtual functions, and vtables.", 40));
-    //         c1.addChapter(Chapter(4, "C++ File Handling & Streams", "Reading and writing structured data using fstream.", 35));
+    void seedInitialDataIfEmpty() {
+        if (admins.empty()) {
+            admins.push_back(Admin(1, "System Admin", "admin", "admin123"));
+        }
+        if (teachers.empty()) {
+            teachers.push_back(Teacher(101, "Prof. Rahul", "teacher1", "rahul123", "Software Engineering"));
+            teachers.push_back(Teacher(102, "Dr. Ramesh", "teacher2", "ramesh123", "Computer Science"));
+        }
+        if (students.empty()) {
+            students.push_back(Student(201, "muni satwik", "munisatwik", "muni123"));
+        }
+        if (courses.empty()) {
+            Course c1(1001, "C++ Object Oriented Programming",
+                      "Comprehensive guide to Classes, Inheritance, Polymorphism & File I/O.",
+                      "Prof. Rahul");
+            c1.addChapter(Chapter(1, "Introduction to OOP Concepts", "Overview of Classes, Objects, Abstraction & Encapsulation.", 25));
+            c1.addChapter(Chapter(2, "Constructors & Destructors", "Memory lifecycle, constructors, destructors and copy semantics.", 30));
+            c1.addChapter(Chapter(3, "Inheritance & Dynamic Polymorphism", "Base/Derived classes, virtual functions, and vtables.", 40));
+            c1.addChapter(Chapter(4, "C++ File Handling & Streams", "Reading and writing structured data using fstream.", 35));
 
-    //         Course c2(1002, "Data Structures & Algorithms", 
-    //                   "Master Arrays, Linked Lists, Trees, Graphs & Algorithm Analysis.", 
-    //                   "Dr. Grace Hopper");
-    //         c2.addChapter(Chapter(1, "Arrays & Pointers", "Contiguous memory allocation and pointer arithmetic.", 20));
-    //         c2.addChapter(Chapter(2, "Dynamic Linked Lists", "Singly & Doubly Linked Lists implementation.", 35));
-    //         c2.addChapter(Chapter(3, "Binary Search Trees", "Tree traversals, insertion, and deletion algorithms.", 45));
+            Course c2(1002, "Data Structures & Algorithms", 
+                      "Master Arrays, Linked Lists, Trees, Graphs & Algorithm Analysis.", 
+                      "Dr. Ramesh");
+            c2.addChapter(Chapter(1, "Arrays & Pointers", "Contiguous memory allocation and pointer arithmetic.", 20));
+            c2.addChapter(Chapter(2, "Dynamic Linked Lists", "Singly & Doubly Linked Lists implementation.", 35));
+            c2.addChapter(Chapter(3, "Binary Search Trees", "Tree traversals, insertion, and deletion algorithms.", 45));
 
-    //         courses.push_back(c1);
-    //         courses.push_back(c2);
+            courses.push_back(c1);
+            courses.push_back(c2);
 
-    //         students[0].enrollInCourse(1001, 2);
-    //         students[1].enrollInCourse(1002, 1);
-    //     }
-    //     saveDataToFiles();
-    // }
+            students[0].enrollInCourse(1001, 2);
+            students[1].enrollInCourse(1002, 1);
+        }
+        saveDataToFiles();
+    }
 
     // ========================================================================
     // FINDER UTILITIES
@@ -1071,85 +1171,108 @@ public:
 // MAIN APPLICATION ENTRY POINT
 // ============================================================================
 int main() {
-    cout << "=========================================================\n";
-    cout << "        E-LEARNING COURSE MANAGEMENT SYSTEM (C++ OOP)    \n";
-    cout << "=========================================================\n";
-
-    // Initialize System Engine (Loads data from users.txt, admin.txt, teachers.txt, course.txt)
-    ElearningSystem system;
-
-    int mainChoice = 0;
-    do {
-        cout << "\n=========================================================\n";
-        cout << "                    MAIN LOGIN MENU                      \n";
+    try
+    {
         cout << "=========================================================\n";
-        cout << " 1. Student / User Login\n";
-        cout << " 2. Teacher Login\n";
-        cout << " 3. Admin Login\n";
-        cout << " 4. New Student Registration\n";
-        cout << " 5. Browse All Courses (Guest Access)\n";
-        cout << " 6. Exit Program\n";
-        cout << "---------------------------------------------------------\n";
-        cout << " Enter Choice (1-6): ";
+        cout << "        E-LEARNING COURSE MANAGEMENT SYSTEM (C++ OOP)    \n";
+        cout << "=========================================================\n";
 
-        if (!(cin >> mainChoice)) {
-            cin.clear();
+        // Initialize System Engine (Loads data from users.txt, admin.txt, teachers.txt, course.txt)
+        ElearningSystem system;
+
+        int mainChoice = 0;
+        do
+        {
+            cout << "\n=========================================================\n";
+            cout << "                    MAIN LOGIN MENU                      \n";
+            cout << "=========================================================\n";
+            cout << " 1. Student / User Login\n";
+            cout << " 2. Teacher Login\n";
+            cout << " 3. Admin Login\n";
+            cout << " 4. New Student Registration\n";
+            cout << " 5. Browse All Courses (Guest Access)\n";
+            cout << " 6. Exit Program\n";
+            cout << "---------------------------------------------------------\n";
+            cout << " Enter Choice (1-6): ";
+
+            if (!(cin >> mainChoice))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                continue;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            continue;
-        }
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-        switch (mainChoice) {
-        case 1: {
-            string uname = readLinePrompt("\n Enter Student Username: ");
-            string pass = readPasswordPrompt(" Enter Password: ");
-            Student* student = system.loginStudent(uname, pass);
-            if (student) {
-                cout << "\n[Success] Welcome back, " << student->getName() << "!\n";
-                system.studentMenu(student);
-            } else {
-                cout << "\n[Error] Invalid student credentials!\n";
+            switch (mainChoice)
+            {
+            case 1:
+            {
+                string uname = readLinePrompt("\n Enter Student Username: ");
+                string pass = readPasswordPrompt(" Enter Password: ");
+                Student *student = system.loginStudent(uname, pass);
+                if (student)
+                {
+                    cout << "\n[Success] Welcome back, " << student->getName() << "!\n";
+                    system.studentMenu(student);
+                }
+                else
+                {
+                    cout << "\n[Error] Invalid student credentials!\n";
+                }
+                break;
             }
-            break;
-        }
-        case 2: {
-            string uname = readLinePrompt("\n Enter Teacher Username: ");
-            string pass = readPasswordPrompt(" Enter Password: ");
-            Teacher* teacher = system.loginTeacher(uname, pass);
-            if (teacher) {
-                cout << "\n[Success] Welcome, Instructor " << teacher->getName() << "!\n";
-                system.teacherMenu(teacher);
-            } else {
-                cout << "\n[Error] Invalid teacher credentials!\n";
+            case 2:
+            {
+                string uname = readLinePrompt("\n Enter Teacher Username: ");
+                string pass = readPasswordPrompt(" Enter Password: ");
+                Teacher *teacher = system.loginTeacher(uname, pass);
+                if (teacher)
+                {
+                    cout << "\n[Success] Welcome, Instructor " << teacher->getName() << "!\n";
+                    system.teacherMenu(teacher);
+                }
+                else
+                {
+                    cout << "\n[Error] Invalid teacher credentials!\n";
+                }
+                break;
             }
-            break;
-        }
-        case 3: {
-            string uname = readLinePrompt("\n Enter Admin Username: ");
-            string pass = readPasswordPrompt(" Enter Password: ");
-            Admin* admin = system.loginAdmin(uname, pass);
-            if (admin) {
-                cout << "\n[Success] Admin authentication granted. Welcome, " << admin->getName() << "!\n";
-                system.adminMenu(admin);
-            } else {
-                cout << "\n[Error] Invalid admin credentials!\n";
+            case 3:
+            {
+                string uname = readLinePrompt("\n Enter Admin Username: ");
+                string pass = readPasswordPrompt(" Enter Password: ");
+                Admin *admin = system.loginAdmin(uname, pass);
+                if (admin)
+                {
+                    cout << "\n[Success] Admin authentication granted. Welcome, " << admin->getName() << "!\n";
+                    system.adminMenu(admin);
+                }
+                else
+                {
+                    cout << "\n[Error] Invalid admin credentials!\n";
+                }
+                break;
             }
-            break;
-        }
-        case 4:
-            system.registerNewStudent();
-            break;
-        case 5:
-            system.browseAllCourses();
-            break;
-        case 6:
-            cout << "\nSaving all data to .txt files and closing system...\n";
-            break;
-        default:
-            cout << "\n[Error] Invalid choice! Please select 1-6.\n";
-        }
-    } while (mainChoice != 6);
+            case 4:
+                system.registerNewStudent();
+                break;
+            case 5:
+                system.browseAllCourses();
+                break;
+            case 6:
+                cout << "\nSaving all data to .txt files and closing system...\n";
+                break;
+            default:
+                cout << "\n[Error] Invalid choice! Please select 1-6.\n";
+            }
+        } while (mainChoice != 6);
 
-    cout << "\n[System] Thank you for using the E-Learning System. Good luck!\n";
-    return 0;
+        cout << "\n[System] Thank you for using the E-Learning System. Good luck!\n";
+        return 0;
+    }
+    catch (const exception &e)
+    {
+        cerr << "\n[Critical Error] " << e.what() << "\n";
+        return 1;
+    }
 }
