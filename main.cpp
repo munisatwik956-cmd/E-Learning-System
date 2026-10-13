@@ -673,7 +673,6 @@ public:
             courses.push_back(c2);
 
             students[0].enrollInCourse(1001, 2);
-            students[1].enrollInCourse(1002, 1);
         }
         saveDataToFiles();
     }
